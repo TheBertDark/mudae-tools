@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CharacterItem } from '../utils/mudae';
+import { getOptimizedImageUrl } from '../utils/mudae';
 import { Copy, Check, ExternalLink } from 'lucide-react';
+
+import bronzeKeyIcon from '../assets/BronzeKey.webp';
+import silverKeyIcon from '../assets/silverkey.webp';
+import goldKeyIcon from '../assets/goldkey.webp';
+import chaosKeyIcon from '../assets/chaoskey.webp';
+
+import { useLanguage } from '../context/LanguageContext';
 
 interface DiscordEmbedPreviewProps {
   item: CharacterItem;
@@ -8,14 +16,60 @@ interface DiscordEmbedPreviewProps {
   onColorChange: (newColor: string) => void;
 }
 
+const KEY_ICONS: Record<string, string> = {
+  bronzekey: bronzeKeyIcon,
+  silverkey: silverKeyIcon,
+  goldkey: goldKeyIcon,
+  chaoskey: chaosKeyIcon,
+};
+
+function renderKeysInfo(keysInfo?: string) {
+  if (!keysInfo) return null;
+
+  const keyTypeMatch = keysInfo.match(/:(\w+):/);
+  const countMatch = keysInfo.match(/\((\d+)\)/);
+
+  const keyName = keyTypeMatch ? keyTypeMatch[1].toLowerCase() : null;
+  const count = countMatch ? countMatch[1] : null;
+
+  const iconSrc = keyName ? KEY_ICONS[keyName] : null;
+
+  if (iconSrc) {
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-[#171821] border border-[#2e3142] px-2.5 py-0.5 rounded-full text-xs font-semibold text-gray-200 shadow-sm">
+        <img
+          src={iconSrc}
+          alt={keyName || 'key'}
+          draggable={false}
+          className="w-4 h-4 object-contain shrink-0 select-none pointer-events-none"
+        />
+        {count && <span className="text-amber-400 font-mono text-xs font-bold">({count})</span>}
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full font-mono">
+      {keysInfo}
+    </span>
+  );
+}
+
 export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
   item,
   currentColor,
   onColorChange,
 }) => {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
+  const [imgSrc, setImgSrc] = useState(item.displayImageUrl || getOptimizedImageUrl(item.imageUrl));
 
-  // Command to run in discord: $ec Character Name $ #hex
+  useEffect(() => {
+    if (item.displayImageUrl) {
+      setImgSrc(item.displayImageUrl);
+    }
+  }, [item.displayImageUrl]);
+
   const mudaeCommand = `$ec ${item.name} $ ${currentColor || '#202225'}`;
 
   const handleCopy = () => {
@@ -24,68 +78,75 @@ export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleImageError = () => {
+    const optimized = getOptimizedImageUrl(item.imageUrl);
+    const allorigins = `https://api.allorigins.win/raw?url=${encodeURIComponent(item.imageUrl)}`;
+
+    if (imgSrc === item.imageUrl) {
+      setImgSrc(optimized);
+    } else if (imgSrc === optimized) {
+      setImgSrc(allorigins);
+    } else if (imgSrc === allorigins) {
+      setImgSrc(item.imageUrl);
+    }
+  };
+
   return (
-    <div className="bg-[#1e1f22] border border-[#2b2d31] rounded-lg p-4 shadow-xl flex flex-col md:flex-row gap-5 items-start justify-between transition-all hover:border-[#383a40]">
-      {/* Discord Embed card representation */}
-      <div className="flex gap-3 items-stretch max-w-full">
-        {/* Discord Embed Left Color Strip */}
+    <div className="group/card bg-[#14151e]/90 hover:bg-[#181924] border border-[#222432] hover:border-[#333648] rounded-2xl p-4 sm:p-5 shadow-xl transition-all duration-200 flex flex-col md:flex-row gap-5 items-start justify-between">
+      <div className="flex gap-3.5 items-stretch max-w-full">
         <div
-          className="w-1.5 rounded-full shrink-0 transition-colors duration-300"
-          style={{ backgroundColor: currentColor || '#5865f2' }}
+          className="w-1.5 rounded-full shrink-0 transition-all duration-300 shadow-sm"
+          style={{
+            backgroundColor: currentColor || '#5865f2',
+            boxShadow: `0 0 12px ${currentColor ? currentColor + '55' : 'transparent'}`,
+          }}
         />
 
-        {/* Content of embed */}
         <div className="flex flex-col sm:flex-row gap-4 items-start">
-          {/* Character Image */}
-          <div className="relative group w-24 h-36 shrink-0 rounded overflow-hidden bg-[#2b2d31] flex items-center justify-center border border-[#35373c]">
-            {item.imageUrl ? (
+          <div className="relative group w-24 h-36 shrink-0 rounded-xl overflow-hidden bg-[#1a1c26] flex items-center justify-center border border-[#2c2f40] shadow-md">
+            {imgSrc ? (
               <img
-                src={item.imageUrl}
+                src={imgSrc}
                 alt={item.name}
                 referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
-                className="w-full h-full object-cover rounded"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
+                draggable={false}
+                className="w-full h-full object-cover rounded-xl select-none transition-transform duration-300 group-hover:scale-105"
+                onError={handleImageError}
               />
             ) : (
-              <span className="text-xs text-gray-500">No Image</span>
+              <span className="text-xs text-gray-500 font-mono">No Image</span>
             )}
             <a
               href={item.imageUrl}
               target="_blank"
               rel="noreferrer"
               title="Abrir imagen original"
-              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity backdrop-blur-xs"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4 text-white drop-shadow" />
             </a>
           </div>
 
-          {/* Details & Palette Swatches */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg text-white leading-tight">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-bold text-lg text-white leading-tight tracking-tight">
                   {item.name}
                 </h3>
-                {item.keysInfo && (
-                  <span className="text-xs text-yellow-500/90 bg-yellow-500/10 px-2 py-0.5 rounded font-mono">
-                    {item.keysInfo}
-                  </span>
-                )}
+                {renderKeysInfo(item.keysInfo)}
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Sugerido: <span className="font-mono font-medium text-gray-200">{currentColor || 'N/A'}</span>
+              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                <span>{t('cp.customColor')}</span>
+                <span className="font-mono font-semibold text-gray-200 bg-[#1c1d29] px-1.5 py-0.5 rounded border border-[#2b2d3d]">
+                  {currentColor || 'N/A'}
+                </span>
               </p>
             </div>
 
-            {/* Quick Palette Swatches picker */}
             {item.palette && (
-              <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-wider text-gray-400 font-bold block">
-                  Tonos detectados:
+              <div className="space-y-1.5">
+                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block">
+                  {t('cp.palette')}
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {Object.entries(item.palette).map(([type, hex]) => {
@@ -96,26 +157,25 @@ export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
                         key={type}
                         onClick={() => onColorChange(hex)}
                         title={`${type}: ${hex}`}
-                        className={`w-6 h-6 rounded-md transition-transform flex items-center justify-center border ${
+                        className={`w-6 h-6 rounded-lg transition-all flex items-center justify-center border cursor-pointer ${
                           isSelected
-                            ? 'scale-110 ring-2 ring-white border-transparent'
-                            : 'border-white/20 hover:scale-105'
+                            ? 'scale-115 ring-2 ring-white/90 shadow-md border-transparent z-10'
+                            : 'border-white/10 hover:scale-110 hover:border-white/40 opacity-85 hover:opacity-100'
                         }`}
                         style={{ backgroundColor: hex }}
                       >
-                        {isSelected && <Check className="w-3 h-3 text-white drop-shadow" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white drop-shadow-md stroke-[3]" />}
                       </button>
                     );
                   })}
 
-                  {/* Custom color picker input */}
                   <div className="relative flex items-center ml-1">
                     <input
                       type="color"
                       value={currentColor || '#5865f2'}
                       onChange={(e) => onColorChange(e.target.value)}
-                      title="Elegir color personalizado"
-                      className="w-6 h-6 rounded border border-white/20 bg-transparent cursor-pointer"
+                      title={t('cp.customColor')}
+                      className="w-6 h-6 rounded-lg border border-white/20 bg-transparent cursor-pointer hover:border-white/50 transition-colors p-0 overflow-hidden"
                     />
                   </div>
                 </div>
@@ -123,7 +183,7 @@ export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
             )}
 
             {item.error && (
-              <p className="text-xs text-red-400 font-mono bg-red-950/40 p-1.5 rounded border border-red-900/50">
+              <p className="text-xs text-red-400 font-mono bg-red-950/40 p-2 rounded-lg border border-red-900/50">
                 {item.error}
               </p>
             )}
@@ -131,26 +191,31 @@ export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
         </div>
       </div>
 
-      {/* Action / Command Section */}
-      <div className="flex flex-col items-end gap-2 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#2b2d31]">
-        <div className="bg-[#111214] border border-[#2b2d31] px-3 py-2 rounded-lg text-sm font-mono text-emerald-400 w-full md:w-auto max-w-sm truncate select-all">
-          {mudaeCommand}
+      <div className="flex flex-col items-end gap-2.5 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#222432]">
+        <div
+          onClick={handleCopy}
+          title={t('cp.copy')}
+          className="bg-[#0b0c10] hover:bg-[#12131b] border border-[#222433] hover:border-teal-500/50 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-mono text-teal-400 w-full md:w-auto max-w-sm truncate cursor-pointer transition-all select-all flex items-center justify-between gap-3 shadow-inner group"
+        >
+          <span className="truncate font-semibold">{mudaeCommand}</span>
+          <Copy className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 shrink-0 text-teal-400 transition-opacity" />
         </div>
+
         <button
           onClick={handleCopy}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all w-full md:w-auto justify-center cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all w-full md:w-auto justify-center cursor-pointer shadow-md ${
             copied
-              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40'
-              : 'bg-[#5865f2] hover:bg-[#4752c4] text-white shadow-lg shadow-indigo-950/50'
+              ? 'bg-emerald-600 text-white shadow-emerald-950/60'
+              : 'bg-[#5865f2] hover:bg-[#4752c4] active:scale-95 text-white shadow-indigo-950/50'
           }`}
         >
           {copied ? (
             <>
-              <Check className="w-4 h-4" /> Copiado!
+              <Check className="w-3.5 h-3.5" /> {t('cp.copied')}
             </>
           ) : (
             <>
-              <Copy className="w-4 h-4" /> Copiar comando
+              <Copy className="w-3.5 h-3.5" /> {t('cp.copy')}
             </>
           )}
         </button>
