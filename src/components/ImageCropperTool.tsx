@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { getOptimizedImageUrl } from '../utils/mudae';
+import { normalizeImageUrl, getImageCandidateUrls } from '../utils/mudae';
 import goldKeyIcon from '../assets/goldkey.webp';
 import {
   Upload,
@@ -164,8 +164,9 @@ export const ImageCropperTool: React.FC = () => {
     const urlMatch = raw.match(/https?:\/\/[^\s]+/i);
     if (!urlMatch) return null;
 
-    const url = urlMatch[0];
-    let rest = raw.replace(url, '').trim();
+    const rawUrl = urlMatch[0];
+    const url = normalizeImageUrl(rawUrl);
+    let rest = raw.replace(rawUrl, '').trim();
     let name = '';
     let series = '';
 
@@ -180,34 +181,57 @@ export const ImageCropperTool: React.FC = () => {
     return { url, name, series };
   };
 
-  // Convert remote URL to local Blob ObjectURL via proxy
+  // Convert remote URL to local Blob ObjectURL via proxy or direct
   const loadUrlAsBlob = async (targetUrl: string): Promise<string> => {
-    // 1. Try via weserv proxy
-    const proxied = getOptimizedImageUrl(targetUrl);
-    try {
-      const res = await fetch(proxied);
-      if (res.ok) {
-        const blob = await res.blob();
-        return URL.createObjectURL(blob);
+    const normalized = normalizeImageUrl(targetUrl);
+    const candidates = getImageCandidateUrls(normalized);
+
+    for (const candidate of candidates) {
+      try {
+        const res = await fetch(candidate, {
+          referrerPolicy: 'no-referrer',
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (blob.type.startsWith('image/')) {
+            return URL.createObjectURL(blob);
+          }
+        }
+      } catch {
+        // Continue to next strategy
       }
-    } catch {
-      // Continue to next strategy
     }
 
-    // 2. Try via allorigins proxy
-    try {
-      const allorigins = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-      const res = await fetch(allorigins);
-      if (res.ok) {
-        const blob = await res.blob();
-        return URL.createObjectURL(blob);
-      }
-    } catch {
-      // Continue to next strategy
-    }
-
-    // 3. Fallback direct targetUrl
-    return targetUrl;
+    // Direct Image Element fallback with canvas export
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.referrerPolicy = 'no-referrer';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob((b) => {
+              if (b) {
+                resolve(URL.createObjectURL(b));
+              } else {
+                resolve(normalized);
+              }
+            }, 'image/png');
+          } else {
+            resolve(normalized);
+          }
+        } catch {
+          resolve(normalized);
+        }
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = normalized;
+    });
   };
 
   // Main loader for URL

@@ -49,12 +49,13 @@ export function parseMudaeInput(input: string): CharacterItem[] {
     namePart = namePart.replace(/[·•–—\-]+$/, '').trim();
 
     if (imageUrl) {
+      const normalizedUrl = normalizeImageUrl(imageUrl);
       items.push({
         id: `char-${i}-${Date.now()}`,
         name: namePart || `Character #${i + 1}`,
         rawLine: raw,
-        imageUrl,
-        displayImageUrl: getOptimizedImageUrl(imageUrl),
+        imageUrl: normalizedUrl,
+        displayImageUrl: getOptimizedImageUrl(normalizedUrl),
         keysInfo,
         loading: true,
       });
@@ -64,15 +65,55 @@ export function parseMudaeInput(input: string): CharacterItem[] {
   return items;
 }
 
+export function normalizeImageUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+
+  // Imgur normalization
+  // Matches: https://imgur.com/ID or https://i.imgur.com/ID or https://m.imgur.com/ID
+  // Also handles /a/ID or /gallery/ID
+  const imgurMatch = url.match(
+    /https?:\/\/(?:[im]\.)?imgur\.com\/(?:(?:a|gallery)\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z0-9]+)?/i
+  );
+  if (imgurMatch) {
+    const id = imgurMatch[1];
+    return `https://i.imgur.com/${id}.png`;
+  }
+
+  return url;
+}
+
+export function isImgurUrl(url: string): boolean {
+  return /(?:[im]\.)?imgur\.com/i.test(url);
+}
+
 export function getOptimizedImageUrl(rawUrl: string): string {
   if (!rawUrl) return '';
-  return `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}`;
+  const normalized = normalizeImageUrl(rawUrl);
+
+  // Imgur blocks images.weserv.nl with 404, but i.imgur.com natively supports CORS (Access-Control-Allow-Origin: *)
+  if (isImgurUrl(normalized)) {
+    return normalized;
+  }
+
+  return `https://images.weserv.nl/?url=${encodeURIComponent(normalized)}`;
 }
-const IMAGE_CANDIDATE_URLS = [
-  (url: string) => `https://images.weserv.nl/?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => url,
-];
+
+export function getImageCandidateUrls(rawUrl: string): string[] {
+  const normalized = normalizeImageUrl(rawUrl);
+  if (isImgurUrl(normalized)) {
+    return [
+      normalized,
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(normalized)}`,
+    ];
+  }
+
+  return [
+    `https://images.weserv.nl/?url=${encodeURIComponent(normalized)}`,
+    normalized,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(normalized)}`,
+  ];
+}
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   r /= 255;
@@ -148,9 +189,10 @@ export async function extractPaletteFromImage(
   url: string
 ): Promise<{ palette: CharacterItem['palette']; bestColor: string; workingUrl: string }> {
   let lastError: unknown = null;
+  const candidateUrls = getImageCandidateUrls(url);
 
-  for (let p = 0; p < IMAGE_CANDIDATE_URLS.length; p++) {
-    const candidateUrl = IMAGE_CANDIDATE_URLS[p](url);
+  for (let p = 0; p < candidateUrls.length; p++) {
+    const candidateUrl = candidateUrls[p];
     try {
       const img = new Image();
       img.crossOrigin = 'Anonymous';

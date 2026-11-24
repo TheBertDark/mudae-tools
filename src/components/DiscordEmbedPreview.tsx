@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { CharacterItem } from '../utils/mudae';
-import { getOptimizedImageUrl } from '../utils/mudae';
+import { getOptimizedImageUrl, getImageCandidateUrls } from '../utils/mudae';
 import { Copy, Check, ExternalLink } from 'lucide-react';
 
 import bronzeKeyIcon from '../assets/BronzeKey.webp';
@@ -79,15 +79,12 @@ export const DiscordEmbedPreview: React.FC<DiscordEmbedPreviewProps> = ({
   };
 
   const handleImageError = () => {
-    const optimized = getOptimizedImageUrl(item.imageUrl);
-    const allorigins = `https://api.allorigins.win/raw?url=${encodeURIComponent(item.imageUrl)}`;
-
-    if (imgSrc === item.imageUrl) {
-      setImgSrc(optimized);
-    } else if (imgSrc === optimized) {
-      setImgSrc(allorigins);
-    } else if (imgSrc === allorigins) {
-      setImgSrc(item.imageUrl);
+    const candidates = getImageCandidateUrls(item.imageUrl);
+    const currentIdx = candidates.indexOf(imgSrc);
+    if (currentIdx !== -1 && currentIdx + 1 < candidates.length) {
+      setImgSrc(candidates[currentIdx + 1]);
+    } else if (currentIdx === -1 && candidates.length > 0) {
+      setImgSrc(candidates[0]);
     }
   };
 
