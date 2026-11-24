@@ -16,9 +16,9 @@ function AppContent() {
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-b from-teal-500/10 via-indigo-500/5 to-transparent blur-3xl opacity-70" />
       </div>
 
-      <header className="sticky top-0 z-50 bg-[#12131a]/80 backdrop-blur-xl border-b border-[#1f212d] px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
+      <header className="sticky top-0 z-50 bg-[#12131a]/80 backdrop-blur-xl border-b border-[#1f212d] px-4 sm:px-6 py-3">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-x-4 xl:gap-x-6 gap-y-3">
+          <div className="contents xl:flex xl:items-center xl:gap-6">
             <div className="flex items-center gap-3">
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400 to-indigo-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-300" />
@@ -40,10 +40,10 @@ function AppContent() {
               </div>
             </div>
 
-            <nav className="flex items-center gap-1.5 bg-[#0e0f14]/80 p-1 rounded-xl border border-[#1e202b]">
+            <nav className="order-last xl:order-none w-full xl:w-auto flex items-center gap-1.5 overflow-x-auto bg-[#0e0f14]/80 p-1 rounded-xl border border-[#1e202b]">
               <button
                 onClick={() => setActiveTab('color-picker')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'color-picker'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-[#181a24] border border-transparent'
@@ -55,7 +55,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('ouro-chest')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'ouro-chest'
                     ? 'bg-red-500/15 text-red-300 border border-red-500/30 shadow-sm'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-[#181a24] border border-transparent'
@@ -67,7 +67,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('list-splitter')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'list-splitter'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-[#181a24] border border-transparent'
@@ -79,7 +79,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('image-cropper')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'image-cropper'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-[#181a24] border border-transparent'
@@ -117,7 +117,7 @@ function AppContent() {
               </button>
             </div>
 
-            <span className="text-[11px] font-mono bg-[#161722] text-teal-300/80 px-2.5 py-0.5 rounded-full border border-teal-500/20 shadow-sm">
+            <span className="hidden sm:inline text-[11px] font-mono bg-[#161722] text-teal-300/80 px-2.5 py-0.5 rounded-full border border-teal-500/20 shadow-sm">
               v1.2.0
             </span>
           </div>
