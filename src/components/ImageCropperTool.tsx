@@ -1017,6 +1017,7 @@ export const ImageCropperTool: React.FC = () => {
                 className="relative max-w-full max-h-[500px] select-none rounded-xl overflow-hidden shadow-inner flex items-center justify-center"
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
               >
                 <img
                   ref={imgRef}
@@ -1061,7 +1062,7 @@ export const ImageCropperTool: React.FC = () => {
                     height: `${crop.height}%`,
                   }}
                   onPointerDown={(e) => handlePointerDown(e, 'move')}
-                  className="absolute border-2 border-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.5)] cursor-move select-none"
+                  className="absolute border-2 border-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.5)] cursor-move select-none touch-none"
                 >
                   {/* Rule of thirds grid lines */}
                   <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
@@ -1079,19 +1080,19 @@ export const ImageCropperTool: React.FC = () => {
                   {/* Corner Handles */}
                   <div
                     onPointerDown={(e) => handlePointerDown(e, 'nw')}
-                    className="absolute -top-2 -left-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-nw-resize hover:scale-125 transition"
+                    className="absolute -top-2 -left-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-nw-resize before:absolute before:-inset-4 hover:scale-125 transition"
                   />
                   <div
                     onPointerDown={(e) => handlePointerDown(e, 'ne')}
-                    className="absolute -top-2 -right-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-ne-resize hover:scale-125 transition"
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-ne-resize before:absolute before:-inset-4 hover:scale-125 transition"
                   />
                   <div
                     onPointerDown={(e) => handlePointerDown(e, 'se')}
-                    className="absolute -bottom-2 -right-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-se-resize hover:scale-125 transition"
+                    className="absolute -bottom-2 -right-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-se-resize before:absolute before:-inset-4 hover:scale-125 transition"
                   />
                   <div
                     onPointerDown={(e) => handlePointerDown(e, 'sw')}
-                    className="absolute -bottom-2 -left-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-sw-resize hover:scale-125 transition"
+                    className="absolute -bottom-2 -left-2 w-4 h-4 bg-teal-300 border-2 border-[#0b0c12] rounded-full shadow cursor-sw-resize before:absolute before:-inset-4 hover:scale-125 transition"
                   />
 
                   {/* Edge Handles (for free ratio mode) */}
@@ -1099,19 +1100,19 @@ export const ImageCropperTool: React.FC = () => {
                     <>
                       <div
                         onPointerDown={(e) => handlePointerDown(e, 'n')}
-                        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-2 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-n-resize hover:scale-110"
+                        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-2 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-n-resize before:absolute before:-inset-4 hover:scale-110"
                       />
                       <div
                         onPointerDown={(e) => handlePointerDown(e, 's')}
-                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-2 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-s-resize hover:scale-110"
+                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-2 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-s-resize before:absolute before:-inset-4 hover:scale-110"
                       />
                       <div
                         onPointerDown={(e) => handlePointerDown(e, 'w')}
-                        className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2 h-8 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-w-resize hover:scale-110"
+                        className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-2 h-8 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-w-resize before:absolute before:-inset-4 hover:scale-110"
                       />
                       <div
                         onPointerDown={(e) => handlePointerDown(e, 'e')}
-                        className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2 h-8 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-e-resize hover:scale-110"
+                        className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-2 h-8 bg-teal-300 border border-[#0b0c12] rounded-full shadow cursor-e-resize before:absolute before:-inset-4 hover:scale-110"
                       />
                     </>
                   )}
