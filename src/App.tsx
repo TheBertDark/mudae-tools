@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ColorPickerTool } from './components/ColorPickerTool';
 import { OuroChestSolver } from './components/OuroChestSolver';
 import { ImageCropperTool } from './components/ImageCropperTool';
@@ -9,6 +9,14 @@ import mudaeLogo from './assets/mudae.webp';
 function AppContent() {
   const [activeTab, setActiveTab] = useState<'color-picker' | 'ouro-chest' | 'list-splitter' | 'image-cropper'>('color-picker');
   const { language, setLanguage, t } = useLanguage();
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    // On narrow screens the tab bar scrolls sideways; keep the active tab visible.
+    navRef.current
+      ?.querySelector('[aria-current="page"]')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-[#0b0c10] text-gray-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200">
@@ -40,9 +48,10 @@ function AppContent() {
               </div>
             </div>
 
-            <nav className="order-last xl:order-none w-full xl:w-auto flex items-center gap-1.5 overflow-x-auto bg-[#0e0f14]/80 p-1 rounded-xl border border-[#1e202b]">
+            <nav ref={navRef} className="order-last xl:order-none w-full xl:w-auto flex items-center gap-1.5 overflow-x-auto bg-[#0e0f14]/80 p-1 rounded-xl border border-[#1e202b]">
               <button
                 onClick={() => setActiveTab('color-picker')}
+                aria-current={activeTab === 'color-picker' ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'color-picker'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
@@ -55,6 +64,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('ouro-chest')}
+                aria-current={activeTab === 'ouro-chest' ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'ouro-chest'
                     ? 'bg-red-500/15 text-red-300 border border-red-500/30 shadow-sm'
@@ -67,6 +77,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('list-splitter')}
+                aria-current={activeTab === 'list-splitter' ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'list-splitter'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
@@ -79,6 +90,7 @@ function AppContent() {
 
               <button
                 onClick={() => setActiveTab('image-cropper')}
+                aria-current={activeTab === 'image-cropper' ? 'page' : undefined}
                 className={`flex shrink-0 items-center gap-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'image-cropper'
                     ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
